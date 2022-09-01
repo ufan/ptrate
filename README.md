@@ -1,7 +1,10 @@
-# evhz
+# ptrate
 
-Show mouse refresh rate under linux + evdev
+A command line tool printing polling interval of pointing devices under linux + evdev
 
+The code is adapted from https://git.sr.ht/~iank/evhz
+
+## how to use
 For information about polling rate, see https://wiki.archlinux.org/index.php/Mouse_Polling_Rate
 
 Just do ./run (run is very short and readable).
@@ -18,4 +21,7 @@ use USB ports that use the ehci-pci driver.
 Maintainer: Ian Kelling <ian@iankelling.org>
 
 Bugs, patches, requests, feedback are welcome.
-# ptrate
+
+## example output
+
+![](/example.png)
