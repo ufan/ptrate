@@ -24,11 +24,12 @@
 
 typedef struct event_s {
     int fd;
-    int hz[HZ_LIST];
     int count;
     int avghz;
     unsigned long long prev_time;
     unsigned long long interval;
+    unsigned long long dt[HZ_LIST];
+    unsigned long long avgdt;
     char name[128];
   int dx;
   int dy;
@@ -129,25 +130,29 @@ int main(int argc, char *argv[]) {
                 if(timediff != 0)
                     hz = 1000000ULL / timediff;
 
-                if(hz > 0) {
+                if(hz > 0 && events[i].prev_time != 0) {
+                  if(events[i].interval != 0) {
                     unsigned j, maxavg;
 
-                    events[i].count++;
-                    events[i].hz[events[i].count & (HZ_LIST - 1)] = hz;
+                    events[i].dt[events[i].count & (HZ_LIST - 1)] = events[i].interval;
 
-                    events[i].avghz = 0;
+                    events[i].count++;
+
+                    events[i].avgdt = 0;
 
                     maxavg = (events[i].count > HZ_LIST) ? HZ_LIST : events[i].count;
 
                     for(j = 0; j < maxavg; j++) {
-                        events[i].avghz += events[i].hz[j];
+                        events[i].avgdt += events[i].dt[j];
                     }
 
-                    events[i].avghz /= maxavg;
+                    events[i].avgdt /= maxavg;
+                    events[i].avghz = 1000000ULL / events[i].avgdt;
 
-                    if(verbose) printf("[event%d] %s: Interval % 6llius, Average % 5iHz; dx % 3i, dy % 3i\n", \
-                                       i, events[i].name, events[i].interval, events[i].avghz, events[i].dx, events[i].dy);
+                    if(verbose) printf("[event%d] %s: Dt % 6llius, AvgDt % 6llius, AvgHz % 5iHz; dx % 3i, dy % 3i\n", \
+                                       i, events[i].name, events[i].interval, events[i].avgdt, events[i].avghz, events[i].dx, events[i].dy);
 
+                  }
                     // reset dx, dy
                     events[i].dx = 0;
                     events[i].dy = 0;
@@ -173,7 +178,7 @@ int main(int argc, char *argv[]) {
     for(i = 0; i < max_event; i++) {
         if(events[i].fd != -1) {
             if (events[i].avghz != 0) {
-                printf("\nAverage for %s: % 5iHz\n", events[i].name, events[i].avghz);
+              printf("\nAverage for %s: % 6llius, % 5iHz\n", events[i].name, events[i].avgdt, events[i].avghz);
             }
             close(events[i].fd);
         }
